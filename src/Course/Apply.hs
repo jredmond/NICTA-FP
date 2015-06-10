@@ -100,14 +100,8 @@ instance Apply ((->) t) where
 --
 -- >>> lift2 (+) length sum (listh [4,5,6])
 -- 18
-lift2 ::
-  Apply f =>
-  (a -> b -> c)
-  -> f a
-  -> f b
-  -> f c
-lift2 =
-  error "todo: Course.Apply#lift2"
+lift2 :: Apply f => (a -> b -> c) -> f a -> f b -> f c
+lift2 h fa fb = h <$> fa <*> fb
 
 -- | Apply a ternary function in the environment.
 --
@@ -138,8 +132,7 @@ lift3 ::
   -> f b
   -> f c
   -> f d
-lift3 =
-  error "todo: Course.Apply#lift2"
+lift3 h fa fb fc = h <$> fa <*> fb <*> fc
 
 -- | Apply a quaternary function in the environment.
 --
@@ -171,8 +164,7 @@ lift4 ::
   -> f c
   -> f d
   -> f e
-lift4 =
-  error "todo: Course.Apply#lift4"
+lift4 h fa fb fc fd = h <$> fa <*> fb <*> fc <*> fd
 
 -- | Sequence, discarding the value of the first argument.
 -- Pronounced, right apply.
@@ -197,8 +189,7 @@ lift4 =
   f a
   -> f b
   -> f b
-(*>) =
-  error "todo: Course.Apply#(*>)"
+(*>) fa fb = (\_ b -> b) <$> fa <*> fb
 
 -- | Sequence, discarding the value of the second argument.
 -- Pronounced, left apply.
@@ -223,8 +214,7 @@ lift4 =
   f b
   -> f a
   -> f b
-(<*) =
-  error "todo: Course.Apply#(<*)"
+(<*) fb fa = (\b _ -> b) <$> fb <*> fa
 
 -----------------------
 -- SUPPORT LIBRARIES --
