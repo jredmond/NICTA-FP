@@ -222,7 +222,7 @@ seqOptional = foldRight (twiceOptional (:.)) (Full Nil)
 -- >>> find (const True) infinity
 -- Full 0
 find :: (a -> Bool) -> List a -> Optional a
-find p Nil       = Empty
+find _ Nil       = Empty
 find p (x :. xs) = if p x then Full x else find p xs
 
 -- | Determine if the length of the given list is greater than 4.

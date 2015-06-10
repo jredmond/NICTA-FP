@@ -46,38 +46,28 @@ class Apply f => Applicative f where
   (a -> b)
   -> f a
   -> f b
-(<$>) =
-  error "todo: Course.Applicative#(<$>)"
+f <$> a = pure f <*> a
 
 -- | Insert into Id.
 --
 -- prop> pure x == Id x
 instance Applicative Id where
-  pure ::
-    a
-    -> Id a
-  pure =
-    error "todo: Course.Applicative pure#instance Id"
+  pure :: a -> Id a
+  pure x = Id x
 
 -- | Insert into a List.
 --
 -- prop> pure x == x :. Nil
 instance Applicative List where
-  pure ::
-    a
-    -> List a
-  pure =
-    error "todo: Course.Applicative pure#instance List"
+  pure :: a -> List a
+  pure x = x :. Nil
 
 -- | Insert into an Optional.
 --
 -- prop> pure x == Full x
 instance Applicative Optional where
-  pure ::
-    a
-    -> Optional a
-  pure =
-    error "todo: Course.Applicative pure#instance Optional"
+  pure :: a -> Optional a
+  pure x = Full x
 
 -- | Insert into a constant function.
 --
@@ -86,8 +76,7 @@ instance Applicative ((->) t) where
   pure ::
     a
     -> ((->) t a)
-  pure =
-    error "todo: Course.Applicative pure#((->) t)"
+  pure x = (\_ -> x)
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -105,12 +94,9 @@ instance Applicative ((->) t) where
 --
 -- >>> sequence ((*10) :. (+2) :. Nil) 6
 -- [60,8]
-sequence ::
-  Applicative f =>
-  List (f a)
-  -> f (List a)
-sequence =
-  error "todo: Course.Applicative#sequence"
+sequence :: Applicative f => List (f a) -> f (List a)
+sequence Nil          = pure Nil
+sequence (fa :. rest) = lift2 (:.) fa (sequence rest)
 
 -- | Replicate an effect a given number of times.
 --
@@ -128,13 +114,10 @@ sequence =
 --
 -- >>> replicateA 3 ['a', 'b', 'c']
 -- ["aaa","aab","aac","aba","abb","abc","aca","acb","acc","baa","bab","bac","bba","bbb","bbc","bca","bcb","bcc","caa","cab","cac","cba","cbb","cbc","cca","ccb","ccc"]
-replicateA ::
-  Applicative f =>
-  Int
-  -> f a
-  -> f (List a)
-replicateA =
-  error "todo: Course.Applicative#replicateA"
+replicateA :: Applicative f => Int -> f a -> f (List a)
+replicateA n fa
+  | n <= 0    = pure Nil
+  | otherwise = lift2 (:.) fa (replicateA (n-1) fa)
 
 -- | Filter a list with a predicate that produces an effect.
 --
@@ -156,13 +139,9 @@ replicateA =
 -- >>> filtering (const $ True :. True :.  Nil) (1 :. 2 :. 3 :. Nil)
 -- [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]]
 --
-filtering ::
-  Applicative f =>
-  (a -> f Bool)
-  -> List a
-  -> f (List a)
-filtering =
-  error "todo: Course.Applicative#filtering"
+filtering :: Applicative f => (a -> f Bool) -> List a -> f (List a)
+filtering _ Nil = pure Nil
+filtering p (x :. xs) = lift2 (\bool -> if bool then (x :.) else id) (p x) (filtering p xs)
 
 -----------------------
 -- SUPPORT LIBRARIES --
