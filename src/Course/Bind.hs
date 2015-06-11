@@ -63,13 +63,8 @@ infixr 1 =<<
 --
 -- >>> ((*) <*> (+2)) 3
 -- 15
-(<*>) ::
-  Bind f =>
-  f (a -> b)
-  -> f a
-  -> f b
-(<*>) =
-  error "todo: Course.Bind#(<*>)"
+(<*>) :: Bind f => f (a -> b) -> f a -> f b
+f <*> a = (<$> a) =<< f
 
 infixl 4 <*>
 
@@ -78,36 +73,27 @@ infixl 4 <*>
 -- >>> (\x -> Id(x+1)) =<< Id 2
 -- Id 3
 instance Bind Id where
-  (=<<) ::
-    (a -> Id b)
-    -> Id a
-    -> Id b
-  (=<<) =
-    error "todo: Course.Bind (=<<)#instance Id"
+  (=<<) :: (a -> Id b) -> Id a -> Id b
+  k =<< Id x = k x 
 
 -- | Binds a function on a List.
 --
 -- >>> (\n -> n :. n :. Nil) =<< (1 :. 2 :. 3 :. Nil)
 -- [1,1,2,2,3,3]
 instance Bind List where
-  (=<<) ::
-    (a -> List b)
-    -> List a
-    -> List b
-  (=<<) =
-    error "todo: Course.Bind (=<<)#instance List"
+  (=<<) :: (a -> List b) -> List a -> List b
+  _ =<< Nil     = Nil
+  k =<< x :. xs = k x ++ (k =<< xs)
+
+-- Alternativly (=<<) = flatMap
 
 -- | Binds a function on an Optional.
 --
 -- >>> (\n -> Full (n + n)) =<< Full 7
 -- Full 14
 instance Bind Optional where
-  (=<<) ::
-    (a -> Optional b)
-    -> Optional a
-    -> Optional b
-  (=<<) =
-    error "todo: Course.Bind (=<<)#instance Optional"
+  (=<<) :: (a -> Optional b) -> Optional a -> Optional b
+  (=<<) = bindOptional
 
 -- | Binds a function on the reader ((->) t).
 --
@@ -118,8 +104,7 @@ instance Bind ((->) t) where
     (a -> ((->) t b))
     -> ((->) t a)
     -> ((->) t b)
-  (=<<) =
-    error "todo: Course.Bind (=<<)#instance ((->) t)"
+  k =<< ma = \x -> k (ma x) x
 
 -- | Flattens a combined structure to a single structure.
 --
@@ -134,12 +119,8 @@ instance Bind ((->) t) where
 --
 -- >>> join (+) 7
 -- 14
-join ::
-  Bind f =>
-  f (f a)
-  -> f a
-join =
-  error "todo: Course.Bind#join"
+join :: Bind f => f (f a) -> f a
+join = (=<<) id
 
 -- | Implement a flipped version of @(=<<)@, however, use only
 -- @join@ and @(<$>)@.
@@ -152,8 +133,7 @@ join =
   f a
   -> (a -> f b)
   -> f b
-(>>=) =
-  flip (=<<)
+ma >>= k = join (k <$> ma)
 
 infixl 1 >>=
 
@@ -162,14 +142,8 @@ infixl 1 >>=
 --
 -- >>> ((\n -> n :. n :. Nil) <=< (\n -> n+1 :. n+2 :. Nil)) 1
 -- [2,2,3,3]
-(<=<) ::
-  Bind f =>
-  (b -> f c)
-  -> (a -> f b)
-  -> a
-  -> f c
-(<=<) =
-  error "todo: Course.Bind#(<=<)"
+(<=<) :: Bind f => (b -> f c) -> (a -> f b) -> a -> f c
+f <=< g = \x -> f =<< g x
 
 infixr 1 <=<
 
