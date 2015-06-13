@@ -62,7 +62,11 @@ the contents of c
 -- /Tip:/ use @getArgs@ and @run@
 main ::
   IO ()
-main = headOr "" <$> getArgs >>= run
+main = 
+  getArgs >>= \args ->
+    case args of
+      filename :. Nil -> run filename
+      _ -> putStrLn "usage: runhaskell FileIO.hs filename"
 
 type FilePath =
   Chars
@@ -71,26 +75,35 @@ type FilePath =
 run ::
   Chars
   -> IO ()
-run listFileName = lines <$> readFile listFileName >>= getFiles >>= printFiles
+run filename =
+  do
+    content <- readFile filename
+    files <- getFiles (lines content)
+    printFiles files
 
 getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
-getFiles = sequence . map getFile
+getFiles = sequence . (<$>) getFile
 
 getFile ::
   FilePath
   -> IO (FilePath, Chars)
 getFile fp = (\c -> (fp, c)) <$> readFile fp
+-- Alt: lift2 (<$>) (,) readFile
 
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
 printFiles = void . sequence . map (\(fp,c) -> printFile fp c)
+-- Alt: void . sequence . (<$>) (uncurry printFile)
+-- uncurry :: (a -> b -> c) -> ((a, b) -> c)
 
 printFile ::
   FilePath
   -> Chars
   -> IO ()
-printFile fp c = putStrLn ("============ " ++ fp) >> putStrLn c
+printFile name content = 
+  putStrLn ("============ " ++ name) >> 
+  putStrLn content
 
