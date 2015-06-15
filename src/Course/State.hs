@@ -179,5 +179,7 @@ distinct list = eval (filtering (\x -> State (\s -> (S.notMember x s, S.insert x
 isHappy ::
   Integer
   -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy x = contains 1 (firstRepeat (produce sumOfSquareDigits (fromInteger x)))
+  where
+    sumOfSquareDigits = sum . map (\a -> a*a) . digits
+    digits = map digitToInt . listh . show
