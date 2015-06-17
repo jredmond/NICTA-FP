@@ -100,8 +100,8 @@ type State' s a =
 state' ::
   (s -> (a, s))
   -> State' s a
-state' =
-  error "todo: Course.StateT#state'"
+state' k = StateT (\s -> k <$> Id s)
+-- StateT (Id . k)
 
 -- | Provide an unwrapper for `State'` values.
 --
@@ -111,8 +111,7 @@ runState' ::
   State' s a
   -> s
   -> (a, s)
-runState' =
-  error "todo: Course.StateT#runState'"
+runState' (StateT k) = runId . k
 
 -- | Run the `StateT` seeded with `s` and retrieve the resulting state.
 execT ::
