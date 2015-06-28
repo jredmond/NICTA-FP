@@ -392,7 +392,7 @@ swapRight (ListZipper ls x (r:.rs)) =
 dropLefts ::
   ListZipper a
   -> ListZipper a
-dropLefts (ListZipper ls x rs) = ListZipper Nil x rs
+dropLefts (ListZipper _ x rs) = ListZipper Nil x rs
 
 -- | Drop all values to the right of the focus.
 --
@@ -406,7 +406,7 @@ dropLefts (ListZipper ls x rs) = ListZipper Nil x rs
 dropRights ::
   ListZipper a
   -> ListZipper a
-dropRights (ListZipper ls x rs) = ListZipper ls x Nil
+dropRights (ListZipper ls x _) = ListZipper ls x Nil
 
 -- | Move the focus left the given number of positions. If the value is negative, move right instead.
 --
@@ -467,8 +467,15 @@ moveLeftN' ::
   Int
   -> ListZipper a
   -> Either Int (ListZipper a)
-moveLeftN' =
-  error "todo: Course.ListZipper#moveLeftN'"
+moveLeftN' n z = moveLeftN'' n z 0
+  where
+    moveLeftN'' n' z' q
+      | n' == 0 = Right z'
+      | n' < 0  = moveRightN' (negate n') z'
+      | otherwise =
+        case moveLeft z' of
+            IsZ zz -> moveLeftN'' (n' - 1) zz (q + 1)
+            IsNotZ -> Left q
 
 -- | Move the focus right the given number of positions. If the value is negative, move left instead.
 -- If the focus cannot be moved, the given number of times, return the value by which it can be moved instead.
@@ -491,8 +498,15 @@ moveRightN' ::
   Int
   -> ListZipper a
   -> Either Int (ListZipper a)
-moveRightN' =
-  error "todo: Course.ListZipper#moveRightN'"
+moveRightN' n z = moveRightN'' n z 0
+  where
+    moveRightN'' n' z' q
+      | n' == 0 = Right z'
+      | n' < 0  = moveLeftN' (negate n') z'
+      | otherwise =
+        case moveRight z' of
+            IsZ zz -> moveRightN'' (n' - 1) zz (q + 1)
+            IsNotZ -> Left q
 
 -- | Move the focus to the given absolute position in the zipper. Traverse the zipper only to the extent required.
 --
@@ -508,8 +522,11 @@ nth ::
   Int
   -> ListZipper a
   -> MaybeListZipper a
-nth =
-  error "todo: Course.ListZipper#nth"
+nth i z
+  | curI > i = moveLeftN (curI - i) z
+  | otherwise = moveRightN (i - (curI + 1)) z
+  where
+    curI = index z
 
 -- | Return the absolute position of the current focus in the zipper.
 --
@@ -520,8 +537,7 @@ nth =
 index ::
   ListZipper a
   -> Int
-index =
-  error "todo: Course.ListZipper#index"
+index z = length (lefts z)
 
 -- | Move the focus to the end of the zipper.
 --
@@ -534,8 +550,10 @@ index =
 end ::
   ListZipper a
   -> ListZipper a
-end =
-  error "todo: Course.ListZipper#end"
+end z = 
+  case moveRight z of
+    IsNotZ -> z
+    IsZ z' -> end z'
 
 -- | Move the focus to the start of the zipper.
 --
@@ -548,8 +566,10 @@ end =
 start ::
   ListZipper a
   -> ListZipper a
-start =
-  error "todo: Course.ListZipper#start"
+start z = 
+  case moveLeft z of
+    IsNotZ -> z
+    IsZ z' -> start z'
 
 -- | Delete the current focus and pull the left values to take the empty position.
 --
