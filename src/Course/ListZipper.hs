@@ -581,8 +581,10 @@ start z =
 deletePullLeft ::
   ListZipper a
   -> MaybeListZipper a
-deletePullLeft =
-  error "todo: Course.ListZipper#deletePullLeft"
+deletePullLeft (ListZipper Nil _ _) = 
+  IsNotZ
+deletePullLeft (ListZipper (l:.ls) _ rs) =
+  IsZ (ListZipper ls l rs)
 
 -- | Delete the current focus and pull the right values to take the empty position.
 --
@@ -594,8 +596,10 @@ deletePullLeft =
 deletePullRight ::
   ListZipper a
   -> MaybeListZipper a
-deletePullRight =
-  error "todo: Course.ListZipper#deletePullRight"
+deletePullRight (ListZipper _ _ Nil) = 
+  IsNotZ
+deletePullRight (ListZipper ls _ (r:.rs)) =
+  IsZ (ListZipper ls r rs)
 
 -- | Insert at the current focus and push the left values to make way for the new position.
 --
@@ -610,8 +614,8 @@ insertPushLeft ::
   a
   -> ListZipper a
   -> ListZipper a
-insertPushLeft =
-  error "todo: Course.ListZipper#insertPushLeft"
+insertPushLeft x (ListZipper ls x' rs) = 
+  ListZipper (x':.ls) x rs
 
 -- | Insert at the current focus and push the right values to make way for the new position.
 --
@@ -626,8 +630,8 @@ insertPushRight ::
   a
   -> ListZipper a
   -> ListZipper a
-insertPushRight =
-  error "todo: Course.ListZipper#insertPushRight"
+insertPushRight x (ListZipper ls x' rs) = 
+  ListZipper ls x (x':.rs)
 
 -- | Implement the `Apply` instance for `ListZipper`.
 -- This implementation zips functions with values by function application.
